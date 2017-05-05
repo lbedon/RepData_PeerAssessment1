@@ -1,0 +1,323 @@
+---
+title: "Reproducible Research: Peer Assessment 1"
+author: "Luis David Bedon Gomez"
+date: "4 Mai 2017"
+output: html_document
+keep_md: true
+---
+
+## Introduction
+The following report discuss the questions asked for the Course Project 1 of the reproducible Research Course of the Data Science Specialization from the Johns Hopkings University an Coursera, concearning the data about personal movement using activity monitoring devices.
+
+## 1. Loading and preprocessing the data
+
+### 1.1 Downloading and loading the data
+The given data are stored in a zipped csv-File "activity.csv" and are loaded through the following routine:
+
+
+```{r loading data}
+
+setwd("~/Coursera/ReproducibleResearch")
+library(dplyr)
+library(ggplot2)
+
+if(!file.exists("RepData_PeerAssessment1/activity.csv")){
+  urldata<-"https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+  download.file(urldata,destfile = "activity.zip",method = "curl")
+  unzip("activity.zip")
+}
+
+# NA-values are stored as "NA"
+activity<-read.csv("activity.csv", stringsAsFactors = FALSE, na.strings = "NA")
+
+```
+
+### 1.2 Preprocessing the data
+
+The loaded data were screened to understand the file using the following instruction:
+
+```{r preprocessing}
+str(activity)
+```
+
+Here we see the dimension of the file, the names of the columns, its classes and the content of the first rows.
+
+The columns "steps" and "intervals"" are class "int", as we expect. Contrary, the column "date" is class "character" and we need it to be class "date". I will also
+change the names of the columns by writing them with a capital letter.
+
+The needed transformation goes as follows:
+
+```{r as.Date}
+activity$date<-as.Date(activity$date)
+names(activity)<-c("Steps","Date","Interval")
+class(activity$date)
+names(activity)
+```
+And now the class of "activity$step" is "date" as needed.
+
+## 2. What is mean total number of steps taken per day?
+
+To address this question, I use a pipeline as follows:
+
+```{r stepsday}
+stepsperday<-activity %>% group_by(Date) %>% summarize(SumDay=sum(Steps,na.rm=1),MeanDay=round(mean(Steps,na.rm=1),1),MedianDay=median(Steps,na.rm=1))
+print(stepsperday)
+
+```
+
+Here, i generate with Dyplr-pipeline in one line of code a variable "stepsperday" with the columns:
+
+* "Date" for the date
+* "SumDay" for the total number of steps per day
+* "MeanDay" for the mean of steps per day and
+* "MedianDay"for the median of steps per day.
+
+### 2.1 Histogram of the total number of steps per day
+
+With this data, I generate a histogram showing the number of counts for the total number of steps in 1000-intervals:
+
+```{r stepsdaygraphic}
+
+ggplot()+
+geom_histogram(data=stepsperday,aes(SumDay),binwidth=1000,colour=rgb(.5,.25,.75,1),fill=rgb(.5,.25,.75,.75))+
+scale_x_continuous(name="Total number of steps taken each day \n Bin's width = 1000 ",breaks=seq(0,24000,2000),minor_breaks = seq(1000,24000,2000))+
+scale_y_continuous(name="Counts",breaks=c(1,2,3,4,5,6,7,8,9,10))+
+ggtitle("Histogram for the total number of steps taken each day")
+  
+```
+
+### 2.2 Mean and Median of the total number of steps per day
+
+The Mean and Median of the total number of steps per day can be also calculated from the data frame "stepsperday" as follows:
+
+```{r stepsdaymean}
+a1<-"The mean of total steps per day is:"
+a2<-"The median of total steps per day is:"
+paste(a1,round(mean(stepsperday$SumDay,na.rm = 1),0))
+paste(a2,round(median(stepsperday$SumDay,na.rm = 1),0))
+
+```
+
+## 3. What is the average daily activity pattern?
+
+### 3.1 Time Series Plot 
+
+A diagramm presenting the averaged number of steps in 5-minutes-intervals over all days can be seen here:
+
+```{r plotsteps}
+
+ggplot()+
+geom_line(data=activity,aes(x=Interval,y=Steps),color=rgb(.5,.25,.75,.5))+
+scale_x_continuous(name="5-minute interval")+ #,breaks=seq(0,24000,2000),minor_breaks = seq(1000,24000,2000))+
+#scale_y_continuous(name="Number of steps",breaks=c(1,2,3,4,5,6,7,8,9,10))+
+ggtitle("Time Series Plot for the Number of Steps in 5-Minute-Intervals")
+
+
+```
+
+### 3.2 Interval with the maximum number of steps
+
+The interval with the maximal number of steps corresponds to:
+
+```{r maxinterval}
+
+a3<-"The interval with the maximum number of steps corrensponds to number:"
+maxsteps<-activity$Interval[grep(max(activity$Steps,na.rm=1),activity$Steps)]
+paste(a3,maxsteps)
+
+```
+
+The plot again, showing this interval:
+
+```{r plotstepsmax}
+
+ggplot()+
+geom_line(data=activity,aes(x=Interval,y=Steps),color=rgb(.5,.25,.75,.5))+
+scale_x_continuous(name="5-minute interval")+ #,breaks=seq(0,24000,2000),minor_breaks = seq(1000,24000,2000))+
+#scale_y_continuous(name="Number of steps",breaks=c(1,2,3,4,5,6,7,8,9,10))+
+geom_vline(xintercept = maxsteps)+
+annotate("text", x = maxsteps+150, y = 840, label = "Maximum",size = 3)+
+ggtitle("Time Series Plot for the Number of Steps in 5-Minute-Intervals")
+
+
+```
+
+
+## 4. Imputing missing values
+
+
+### 4.1 Total number of missing values 
+
+The total number of missing values in rows in the dataset is:
+
+```{r NAs}
+a4<-"The total number of missing values in rows in the dataset is:"
+totalna<-table(complete.cases(activity))[1]
+paste(a4,totalna)
+a5<-"This corresponds to the following percentage of all cases: "
+perc<-round(totalna/dim(activity),2)[1]*100
+paste(a5,perc,"%",sep = "")
+```
+
+### 4.2 Strategy for filling in all of the missing values 
+
+Regarding a strategy for filling all the missing values, I would try to fill missing values with the **mean of steps for all other days at the same time**.
+
+This goes as follows:
+
+```{r filling}
+
+# function to find the intervals at the same time the other days
+# using the operation "x mod y" x%%y and regarding that a day has
+# 24*60/5=288 intervals of 5 minutes. Output a vector with the indices
+# for the data with the same day
+finditv <- function(z) seq(z%%(288-1),dim(activity)[1],24*60/5)+1
+
+# function to calculate the mean of activity$Steps for the same days:
+calcmean <- function(z) mean(activity$Steps[finditv(z-1)],na.rm=1)
+ 
+# copy new dataset activityfilled, select NA and substitute them
+activityfilled<-activity
+
+for(i in 1:dim(activityfilled)[1]){
+
+  if(is.na(activityfilled$Steps[i])==TRUE){
+   
+  activityfilled$Steps[i] <- calcmean(i)
+  #print(i)
+  }
+}
+
+```
+
+### 4.3 New dataset with the missing data filled in
+
+As in point 2., I calculate the sum, mean and median per day with the Dyplr-pipeline:
+
+```{r stepsdayfilled}
+stepsperdayfilled<-activityfilled %>% group_by(Date) %>% summarize(SumDay=sum(Steps,na.rm=1),MeanDay=round(mean(Steps,na.rm=1),1),MedianDay=median(Steps,na.rm=1))
+print(stepsperdayfilled)
+
+```
+### 4.4 Impact of filling data
+
+#### 4.4.1 Histogram with the filled data vs. original dataset
+
+The histogram with the filled data sees as follows:
+
+```{r filled}
+ggplot()+
+## histogramm with unfilled data
+geom_histogram(data=stepsperday,aes(SumDay),binwidth=1000,colour=rgb(.5,.25,.75,.75),fill=rgb(.5,.25,.75,.5))+
+
+##histogramm with the filled data  
+geom_histogram(data=stepsperdayfilled,aes(SumDay),binwidth=1000,colour=rgb(.25,.75,.05,.75),fill=rgb(.25,.75,.05,.5))+
+scale_x_continuous(name="Total number of steps taken each day \n Bin's width = 1000 ",breaks=seq(0,24000,2000),minor_breaks = seq(1000,24000,2000))+
+scale_y_continuous(name="Counts",breaks=seq(1,16,1))+
+ggtitle("Histogram for the total number of steps taken each day\nfor the original and the filled dataset")+
+scale_fill_manual()
+```
+
+We see clear that 8 counts by 0 were added to the range between 10500 and 11000 steps per day.  
+
+It is thus very important to be very careful by filling values, for this can affect the datasets in a contundent way.  
+
+  
+  
+
+#### 4.4.1 Changes in Mean and Median by Filling Data
+
+  
+  
+Calculating the mean and median for the new dataset we get:
+
+```{r stepsdaymeanfilled}
+a6<-"The mean of total steps per day with the filled dataset is:"
+a8<-"The mean of total steps per day in the original dataset was:"
+a7<-"The median of total steps per day with the filled dataset is:"
+a9<-"The median of total steps per day in the original dataset was:"
+meanfilled<-round(mean(stepsperdayfilled$SumDay,na.rm = 1),0)
+meanorig<-round(mean(stepsperday$SumDay,na.rm = 1),0)
+medianfilled<-round(median(stepsperdayfilled$SumDay,na.rm = 1),0)
+medianorig<-round(median(stepsperday$SumDay,na.rm = 1),0)
+
+rbind(paste(a6,meanfilled),paste(a8,meanorig),paste(a7,medianfilled),paste(a9,medianorig))
+```
+
+For a graphical representation I create the variable "results":
+
+```{r}
+# create the data frame
+resultsx<-cbind(c(1,2,1,2))
+resultsy<-cbind(c(1,1,2,2))#
+resultsz<-cbind(c(meanorig,meanfilled,medianorig,medianfilled))
+
+results<-as.data.frame(cbind(resultsx,resultsy,resultsz))
+names(results)<-c("x","y","z")
+
+results[,1]<-as.factor(results[,1])
+levels(results[,1])<-c("Orig. Dataset","Filled Dataset")
+results[,2]<-as.factor(results[,2])
+levels(results[,2])<-c("Mean","Median")
+```
+
+And the plot:
+
+```{r}
+ggplot()+
+geom_line(data=results,aes(x=x,y=z,group=y,colour=y),colour=rgb(.5,.25,.75,.75))+
+geom_point(data=results,aes(x=x,y=z,group=y,colour=y,shape=y),size=4,alpha=.5)+
+#geom_point(data=results,aes(x=x,y=z,group=y,colour=y),size=4, shape=23)+
+#geom_point(data=results[3:4,],aes(x=x[3:4],y=z[3:4],group=y,colour=y),size=4,fill="white")+
+scale_y_continuous(name="Total number of steps taken each day")+
+scale_x_discrete(name="")
+```
+
+
+#### 4.4.1 Impact of filling data on the estimates of the total daily number of steps
+
+This impact can be shown through the following plot:
+
+```{r plotstepsum}
+
+ggplot()+
+geom_line(data=stepsperday,aes(x=Date,y=SumDay),color=rgb(.5,.25,.75,.75))+
+geom_line(data=stepsperdayfilled,aes(x=Date,y=SumDay),color=rgb(.25,.75,.05,.75))+
+#annotate("text", x = 15623, y = 20000, label = "Maximum",color=rgb(.25,.5,.75,.75))+
+#annotate("text", x = maxsteps+150, y = 20000, label = "Maximum",size = 3)+
+scale_y_continuous(name="Total number of steps taken each day")+
+ggtitle("Comparisson for the Sum of the Total of the Day between\nthe Original Dataset (purple) vs. the Filled Dataset (green)")
+
+
+```
+
+Or the variation:
+
+```{r}
+
+variation<-stepsperday[,1]
+variation<-cbind(variation,stepsperdayfilled[,2]-stepsperday[,2])
+
+
+ggplot()+
+geom_point(data=variation,aes(x=Date,y=SumDay),color=rgb(.5,.25,.75,.75))+
+#geom_line(data=stepsperdayfilled,aes(x=Date,y=SumDay),color=rgb(.25,.75,.05,.75))+
+#annotate("text", x = 15623, y = 20000, label = "Maximum",color=rgb(.25,.5,.75,.75))+
+#annotate("text", x = maxsteps+150, y = 20000, label = "Maximum",size = 3)+
+scale_y_continuous(name="Difference Filled Data - Original Data")+
+ggtitle("Variation for the Sum of the Total of the Day between\nthe Filled Dataset - the Original Dataset")
+
+```
+
+
+## 5. Are there differences in activity patterns between weekdays and weekends?
+
+
+### 5.1 Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+
+
+### 5.2 Make a panel plot containing a time series plot (i.e. 𝚝𝚢𝚙𝚎 = "𝚕") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+
+
+
+

@@ -50,7 +50,7 @@ The needed transformation goes as follows:
 ```{r as.Date}
 activity$date<-as.Date(activity$date)
 names(activity)<-c("Steps","Date","Interval")
-class(activity$date)
+class(activity$Date)
 names(activity)
 ```
 And now the class of "activity$step" is "date" as needed.
@@ -206,16 +206,21 @@ print(stepsperdayfilled)
 The histogram with the filled data sees as follows:
 
 ```{r filled}
+purple<-rgb(.5,.25,.75,.75)
+green<-rgb(.25,.75,.05,.75)
+lpurple<-rgb(.5,.25,.75,.5)
+lgreen<-rgb(.25,.75,.05,.5)
+
 ggplot()+
 ## histogramm with unfilled data
-geom_histogram(data=stepsperday,aes(SumDay),binwidth=1000,colour=rgb(.5,.25,.75,.75),fill=rgb(.5,.25,.75,.5))+
-
+geom_histogram(data=stepsperday,aes(SumDay,fill=lgreen,colour=green),binwidth=1000)+
 ##histogramm with the filled data  
-geom_histogram(data=stepsperdayfilled,aes(SumDay),binwidth=1000,colour=rgb(.25,.75,.05,.75),fill=rgb(.25,.75,.05,.5))+
+geom_histogram(data=stepsperdayfilled,aes(SumDay,fill=lpurple,colour=purple),binwidth=1000)+
 scale_x_continuous(name="Total number of steps taken each day \n Bin's width = 1000 ",breaks=seq(0,24000,2000),minor_breaks = seq(1000,24000,2000))+
 scale_y_continuous(name="Counts",breaks=seq(1,16,1))+
 ggtitle("Histogram for the total number of steps taken each day\nfor the original and the filled dataset")+
-scale_fill_manual()
+scale_fill_manual("",values=c(lpurple,lgreen),labels=c("Only Original Dataset","Only Filled Dataset"))+
+scale_colour_manual("",values=c(purple,green),labels=c("Only Original Dataset","Only Filled Dataset"))
 ```
 
 We see clear that 8 counts by 0 were added to the range between 10500 and 11000 steps per day.  
@@ -264,13 +269,15 @@ levels(results[,2])<-c("Mean","Median")
 And the plot:
 
 ```{r}
-ggplot()+
-geom_line(data=results,aes(x=x,y=z,group=y,colour=y),colour=rgb(.5,.25,.75,.75))+
-geom_point(data=results,aes(x=x,y=z,group=y,colour=y,shape=y),size=4,alpha=.5)+
-#geom_point(data=results,aes(x=x,y=z,group=y,colour=y),size=4, shape=23)+
+ggplot(data=results,aes(x=x,y=z))+
+#geom_point(data=results,aes(x=x,y=z,group=y,colour=c(rgb(.5,.25,.75,.75),rgb(.75,.25,.5,.75),rgb(.5,.25,.75,.75),rgb(.75,.25,.5,.75)),colour=y,shape=y),size=4,alpha=.5)+
+geom_point(aes(colour=x,group=x),size=6,shape=21)+#,colour=c(rgb(.5,.25,.75,.75),rgb(.75,.75,.25,.75),rgb(.5,.25,.75,.75),rgb(.75,.75,.25,.75)))+  
+geom_point(aes(shape=y),size=4, colour=rgb(.5,.25,.75,.75))+
+geom_line(aes(group=y),colour=rgb(.75,.25,.5,.75))+
 #geom_point(data=results[3:4,],aes(x=x[3:4],y=z[3:4],group=y,colour=y),size=4,fill="white")+
 scale_y_continuous(name="Total number of steps taken each day")+
 scale_x_discrete(name="")
+    
 ```
 
 
@@ -279,12 +286,20 @@ scale_x_discrete(name="")
 This impact can be shown through the following plot:
 
 ```{r plotstepsum}
+# Create one data frame with the information
+a<-as.data.frame(stepsperday$Date)
+names(a)<-"Date"
+a$SumDay<-stepsperday$SumDay
+a$SumDayFilled<-stepsperdayfilled$SumDay
 
-ggplot()+
-geom_line(data=stepsperday,aes(x=Date,y=SumDay),color=rgb(.5,.25,.75,.75))+
-geom_line(data=stepsperdayfilled,aes(x=Date,y=SumDay),color=rgb(.25,.75,.05,.75))+
-#annotate("text", x = 15623, y = 20000, label = "Maximum",color=rgb(.25,.5,.75,.75))+
-#annotate("text", x = maxsteps+150, y = 20000, label = "Maximum",size = 3)+
+# Plot:
+purple<-rgb(.5,.25,.75,.75)
+green<-rgb(.25,.75,.05,.75)
+
+ggplot(data=a,aes(x=Date))+
+geom_line(aes(y=SumDay,colour=green))+
+geom_line(aes(y=SumDayFilled,colour=purple))+
+scale_colour_manual("", values = c(purple, green),labels=c("Original Dataset","Filled Dataset") )+
 scale_y_continuous(name="Total number of steps taken each day")+
 ggtitle("Comparisson for the Sum of the Total of the Day between\nthe Original Dataset (purple) vs. the Filled Dataset (green)")
 

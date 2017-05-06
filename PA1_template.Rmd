@@ -1,25 +1,61 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+author: "Luis David Bedon Gomez"
+date: "4 Mai 2017"
+output: html_document
+keep_md: true
 ---
 
+## Introduction
+The following report discuss the questions asked for the Course Project 1 of the reproducible Research Course of the Data Science Specialization from the Johns Hopkings University an Coursera, concearning the data about personal movement using activity monitoring devices.
 
-## Loading and preprocessing the data
+## 1. Loading and preprocessing the data
 
-
-
-## What is mean total number of steps taken per day?
-
-
-
-## What is the average daily activity pattern?
+### 1.1 Downloading and loading the data
+The given data are stored in a zipped csv-File "activity.csv" and are loaded through the following routine:
 
 
+```{r loading data}
 
-## Imputing missing values
+setwd("~/Coursera/ReproducibleResearch")
+library(dplyr)
+library(ggplot2)
+
+if(!file.exists("RepData_PeerAssessment1/activity.csv")){
+  urldata<-"https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+  download.file(urldata,destfile = "activity.zip",method = "curl")
+  unzip("activity.zip")
+}
+
+# NA-values are stored as "NA"
+activity<-read.csv("activity.csv", stringsAsFactors = FALSE, na.strings = "NA")
+
+```
+
+### 1.2 Preprocessing the data
+
+The loaded data were screened to understand the file using the following instruction:
+
+```{r preprocessing}
+str(activity)
+```
+
+Here we see the dimension of the file, the names of the columns, its classes and the content of the first rows.
+
+The columns "steps" and "intervals"" are class "int", as we expect. Contrary, the column "date" is class "character" and we need it to be class "date". I will also
+change the names of the columns by writing them with a capital letter.
+
+The needed transformation goes as follows:
+
+```{r as.Date}
+activity$date<-as.Date(activity$date)
+names(activity)<-c("Steps","Date","Interval")
+class(activity$Date)
+names(activity)
+```
+And now the class of "activity$step" is "date" as needed.
 
 
 
-## Are there differences in activity patterns between weekdays and weekends?
+
+

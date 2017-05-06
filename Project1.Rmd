@@ -328,10 +328,38 @@ ggtitle("Variation for the Sum of the Total of the Day between\nthe Filled Datas
 ## 5. Are there differences in activity patterns between weekdays and weekends?
 
 
-### 5.1 Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+### 5.1 Comparisson Weekdays vs weekend days
+
+The new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day, is calculated as:
+
+```{r}
+
+iswday<-function(x) if(weekdays(x,abbreviate=TRUE)=="So"|weekdays(x,abbreviate=TRUE)=="Sa") return("Weekend") else return("Workday")
+activityfilled$IsWorkday<-sapply(activityfilled$Date,iswday)
+activityfilled$IsWorkday<-as.factor(activityfilled$IsWorkday)
+```
+
+### 5.2  Time Series Weekdays vs. Weekends
+
+A panel plot containing a time series plot (i.e. 𝚝𝚢𝚙𝚎 = "𝚕") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis) is shown in the following graph:
+
+```{r}
+
+#Average number of steps by workday/weekend for each interval:
+stepswday<-activityfilled%>%group_by(IsWorkday,Interval)%>%summarize(Steps=mean(Steps))
+
+#Plot:
+ggplot(data=stepswday,aes(x=Interval,y=Steps,colour=IsWorkday))+
+geom_line(show.legend = FALSE)+
+geom_line(show.legend = FALSE)+
+facet_grid(IsWorkday~.)+
+scale_colour_manual("", values = c(purple, green),labels=c(levels(stepswday$IsWorkday)[1],levels(stepswday$IsWorkday)[2]))+
+scale_y_continuous(name="Averaged number of steps every 5 min")+
+ggtitle("Comparisson for the Averaged Number of Steps in 5-Minute \nIntervals Weekdays vs. Weekend")
 
 
-### 5.2 Make a panel plot containing a time series plot (i.e. 𝚝𝚢𝚙𝚎 = "𝚕") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+```
+
 
 
 

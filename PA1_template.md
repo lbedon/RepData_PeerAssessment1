@@ -396,7 +396,7 @@ scale_y_continuous(name="Total number of steps taken each day")+
 scale_x_discrete(name="")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+![](PA1_template_files/figure-html/changesfilled-nonfilled-1.png)<!-- -->
 
 
 #### 4.4.1 Impact of filling data on the estimates of the total daily number of steps
@@ -442,7 +442,7 @@ scale_y_continuous(name="Difference Filled Data - Original Data")+
 ggtitle("Variation for the Sum of the Total of the Day between\nthe Filled Dataset - the Original Dataset")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+![](PA1_template_files/figure-html/variationplot-1.png)<!-- -->
 
 
 ## 5. Are there differences in activity patterns between weekdays and weekends?
@@ -478,7 +478,7 @@ scale_y_continuous(name="Averaged number of steps every 5 min")+
 ggtitle("Comparisson for the Averaged Number of Steps in 5-Minute \nIntervals Weekdays vs. Weekend")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](PA1_template_files/figure-html/plotwdays-1.png)<!-- -->
 
 
 

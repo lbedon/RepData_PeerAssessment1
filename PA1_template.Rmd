@@ -2,8 +2,9 @@
 title: "Reproducible Research: Peer Assessment 1"
 author: "Luis David Bedon Gomez"
 date: "4 Mai 2017"
-output: html_document
-keep_md: true
+output: 
+  html_document:
+    keep_md: true 
 ---
 
 ## Introduction
@@ -251,7 +252,7 @@ rbind(paste(a6,meanfilled),paste(a8,meanorig),paste(a7,medianfilled),paste(a9,me
 
 For a graphical representation I create the variable "results":
 
-```{r}
+```{r createdataframe}
 # create the data frame
 resultsx<-cbind(c(1,2,1,2))
 resultsy<-cbind(c(1,1,2,2))#
@@ -268,7 +269,7 @@ levels(results[,2])<-c("Mean","Median")
 
 And the plot:
 
-```{r}
+```{r changesfilled-nonfilled}
 ggplot(data=results,aes(x=x,y=z))+
 #geom_point(data=results,aes(x=x,y=z,group=y,colour=c(rgb(.5,.25,.75,.75),rgb(.75,.25,.5,.75),rgb(.5,.25,.75,.75),rgb(.75,.25,.5,.75)),colour=y,shape=y),size=4,alpha=.5)+
 geom_point(aes(colour=x,group=x),size=6,shape=21)+#,colour=c(rgb(.5,.25,.75,.75),rgb(.75,.75,.25,.75),rgb(.5,.25,.75,.75),rgb(.75,.75,.25,.75)))+  
@@ -308,7 +309,7 @@ ggtitle("Comparisson for the Sum of the Total of the Day between\nthe Original D
 
 Or the variation:
 
-```{r}
+```{r variationplot}
 
 variation<-stepsperday[,1]
 variation<-cbind(variation,stepsperdayfilled[,2]-stepsperday[,2])
@@ -332,7 +333,7 @@ ggtitle("Variation for the Sum of the Total of the Day between\nthe Filled Datas
 
 The new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day, is calculated as:
 
-```{r}
+```{r factorwdays}
 
 iswday<-function(x) if(weekdays(x,abbreviate=TRUE)=="So"|weekdays(x,abbreviate=TRUE)=="Sa") return("Weekend") else return("Workday")
 activityfilled$IsWorkday<-sapply(activityfilled$Date,iswday)
@@ -343,7 +344,7 @@ activityfilled$IsWorkday<-as.factor(activityfilled$IsWorkday)
 
 A panel plot containing a time series plot (i.e. 𝚝𝚢𝚙𝚎 = "𝚕") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis) is shown in the following graph:
 
-```{r}
+```{r plotwdays}
 
 #Average number of steps by workday/weekend for each interval:
 stepswday<-activityfilled%>%group_by(IsWorkday,Interval)%>%summarize(Steps=mean(Steps))
